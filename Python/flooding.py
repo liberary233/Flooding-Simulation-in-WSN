@@ -4,10 +4,21 @@ import networkx as nx
 import random
 
 # 生成随机节点
-num_nodes = 200
-area_size = 100
-radius = 15
-speed = 15
+num_nodes = 10
+area_size = 10
+radius = 4
+speed = 10
+
+# num_nodes = 50
+# area_size = 25
+# radius = 10
+# speed = 10
+
+# 画图设置
+interval = 0.05  # 间隔值变量
+pointsize_path = 0.5
+linewidth_path = 0.5
+k_shortestPath = 5
 
 # 随机生成节点位置
 nodes = np.random.rand(num_nodes, 2) * area_size
@@ -29,38 +40,61 @@ for i in range(num_nodes):
 for i in range(num_nodes):
     for j in range(i + 1, num_nodes):
         if distances[i, j] <= radius:
-            G.add_edge(i, j)
+            G.add_edge(i, j, weight=distances[i, j])  # 使用距离作为权重
 
-# 仿真数据传输过程
-time_to_receive = np.full(num_nodes, np.inf)
-time_to_receive[source_node] = 0
-hops_to_receive = np.full(num_nodes, np.inf)
-hops_to_receive[source_node] = 0
+# 使用Dijkstra算法计算从源节点到所有其他节点的最短路径
+lengths = nx.single_source_dijkstra_path_length(G, source_node)
 
-queue = [(source_node, 0, 0)]
-while queue:
-    current_node, current_time, current_hops = queue.pop(0)
-    neighbors = list(G.neighbors(current_node))
-    for neighbor in neighbors:
-        if time_to_receive[neighbor] == np.inf:
-            time_to_receive[neighbor] = current_time + 1
-            hops_to_receive[neighbor] = current_hops + 1
-            queue.append((neighbor, current_time + 1, current_hops + 1))
+# 找到最长路径的节点（最远节点）
+max_distance_node = max(lengths, key=lengths.get)
+
+# 找到从源节点到目的节点和最远节点的最短路径
+shortest_path_to_destination = nx.shortest_path(G, source=source_node, target=destination_node, weight='weight')
+shortest_path_to_furthest = nx.shortest_path(G, source=source_node, target=max_distance_node, weight='weight')
+
+# 计算从源节点到最远节点的最短路径长度
+longest_path_length = lengths[max_distance_node]
 
 # 绘制节点
 pos = nx.get_node_attributes(G, 'pos')
-colors = plt.cm.jet((time_to_receive - time_to_receive.min()) / (time_to_receive.max() - time_to_receive.min()))
+
+# 计算每个节点的时刻
+times = {node: lengths[node] / longest_path_length for node in G.nodes()}
+
+# 计算路径上的点数量
+num_points = longest_path_length / interval
+
+# 定义一个函数来计算颜色亮度
+def get_brightness(color):
+    return np.sqrt(0.299 * color[0]**2 + 0.587 * color[1]**2 + 0.114 * color[2]**2)
+
 plt.figure(figsize=(8, 8))
 
-# 连接节点
+# 连接节点并绘制
 for (i, j) in G.edges():
-    line_points = np.linspace(nodes[i], nodes[j], int(distances[i, j] / 0.1))
+    line_points = np.linspace(nodes[i], nodes[j], int(distances[i, j] / interval))
     for k in range(len(line_points) - 1):
-        t = (time_to_receive[i] + k * 0.1 / distances[i, j] * (time_to_receive[j] - time_to_receive[i])) / time_to_receive.max()
-        plt.plot(line_points[k:k+2, 0], line_points[k:k+2, 1], color=plt.cm.jet(t), marker='o', markersize=1, linestyle='-', linewidth=0.5)
+        t = times[i] + (k / num_points)
+        color = plt.cm.jet(1 - t)  # 使用1-t以便从红色到蓝色渐变
+        plt.plot(line_points[k:k+2, 0], line_points[k:k+2, 1], color=color, marker='o', markersize=pointsize_path, linestyle='-', linewidth=linewidth_path)
+
+# 加粗绘制最短路径到目的节点
+for i in range(len(shortest_path_to_destination) - 1):
+    start = shortest_path_to_destination[i]
+    end = shortest_path_to_destination[i + 1]
+    line_points = np.linspace(nodes[start], nodes[end], int(distances[start, end] / interval))
+    for k in range(len(line_points) - 1):
+        t = times[start] + (k / num_points)
+        color = plt.cm.jet(1 - t)  # 使用1-t以便从红色到蓝色渐变
+        plt.plot(line_points[k:k+2, 0], line_points[k:k+2, 1], color=color, marker='o', markersize=pointsize_path * k_shortestPath, linestyle='-', linewidth=linewidth_path * k_shortestPath)
 
 # 绘制节点
-nx.draw_networkx_nodes(G, pos, node_color=colors, node_size=30, node_shape='o')
+for i in range(num_nodes):
+    color = plt.cm.jet(1 - times[i])
+    brightness = get_brightness(color)
+    edge_color = 'black' if brightness > 0.5 else 'white'
+    nx.draw_networkx_nodes(G, pos, nodelist=[i], node_color=[color], node_size=30, edgecolors=edge_color, linewidths=0.8, node_shape='o')
+
 nx.draw_networkx_edges(G, pos, alpha=0.3)
 
 # 绘制源节点和目的节点
@@ -72,10 +106,10 @@ plt.title('Data Transmission Simulation')
 plt.show()
 
 # 输出结果
-destination_time = time_to_receive[destination_node]
-destination_hops = hops_to_receive[destination_node]
-all_nodes_time = time_to_receive.max()
-all_nodes_hops = hops_to_receive.max()
+destination_time = lengths[destination_node]
+destination_hops = len(shortest_path_to_destination) - 1
+all_nodes_time = lengths[max_distance_node]
+all_nodes_hops = len(shortest_path_to_furthest) - 1
 
 print(f'目的节点接收到数据的时间: {destination_time}')
 print(f'目的节点接收到数据的跳数: {destination_hops}')
