@@ -1,0 +1,38 @@
+# 生成随机节点
+num_nodes = 15
+area_size = 10
+radius = 4
+speed = 10
+TTL = 2  # 存活时间
+
+interval = 0.05  # 间隔值变量
+pointsize_path = 0.5
+linewidth_path = 0.5
+k_shortestPath = 5
+
+######
+
+num_nodes = 50
+area_size = 25
+radius = 10
+speed = 10
+TTL = 2  # 存活时间
+
+interval = 0.05  # 间隔值变量
+pointsize_path = 0.05
+linewidth_path = 0.05
+k_shortestPath = 15
+
+######
+
+num_nodes = 200
+area_size = 100
+radius = 15
+speed = 15
+TTL = 2  # 存活时间
+
+# 画图设置
+interval = 0.01  # 间隔值变量
+pointsize_path = 0.01
+linewidth_path = 0.01
+k_shortestPath = 15
