@@ -8,7 +8,7 @@ num_nodes = 10
 area_size = 10
 radius = 4
 speed = 10
-TTL = 2  # 初始存活时间
+TTL = 5  # 初始存活时间
 
 interval = 0.05  # 间隔值变量
 pointsize_path = 0.5
