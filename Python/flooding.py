@@ -81,11 +81,6 @@ for (i, j) in G.edges():
                 color = plt.cm.jet(1 - t)  # 使用1-t以便从红色到蓝色渐变
                 plt.plot(line_points[k:k+2, 0], line_points[k:k+2, 1], color=color, marker='o', markersize=pointsize_path, linestyle='-', linewidth=linewidth_path)
 
-# 检查是否能全图广播
-can_broadcast = all(ttl_dict[node] > 0 for node in G.nodes())
-if not can_broadcast:
-    print("不能全图广播")
-
 # 检查目的节点是否可达
 if destination_node not in paths:
     print("目的节点不可达")
@@ -125,5 +120,13 @@ if destination_node in paths:
 
     print(f'目的节点接收到数据的最短时间: {destination_time}')
     print(f'目的节点接收到数据的最小跳数: {destination_hops}')
-    print(f'所有节点均收到数据的最短时间: {all_nodes_time}')
-    print(f'所有节点均收到数据的最小跳数: {all_nodes_hops}')
+
+
+    # 检查是否能全图广播
+    can_broadcast = all(ttl_dict[node] > 0 for node in G.nodes())
+
+    if not can_broadcast:
+        print("不能全图广播")
+    else:
+        print(f'所有节点均收到数据的最短时间: {all_nodes_time}')
+        print(f'所有节点均收到数据的最小跳数: {all_nodes_hops}')
