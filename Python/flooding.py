@@ -4,21 +4,38 @@ import networkx as nx
 import random
 
 # 生成随机节点
-num_nodes = 10
+num_nodes = 15
 area_size = 10
 radius = 4
 speed = 10
+TTL = 2  # 存活时间
 
+interval = 0.05  # 间隔值变量
+pointsize_path = 0.5
+linewidth_path = 0.5
+k_shortestPath = 5
+
+######
 # num_nodes = 50
 # area_size = 25
 # radius = 10
 # speed = 10
 
-# 画图设置
-interval = 0.05  # 间隔值变量
-pointsize_path = 0.5
-linewidth_path = 0.5
-k_shortestPath = 5
+# interval = 0.05  # 间隔值变量
+# pointsize_path = 0.05
+# linewidth_path = 0.05
+# k_shortestPath = 15
+######
+
+# num_nodes = 200
+# area_size = 100
+# radius = 15
+# speed = 15
+# # 画图设置
+# interval = 0.01  # 间隔值变量
+# pointsize_path = 0.01
+# linewidth_path = 0.01
+# k_shortestPath = 15
 
 # 随机生成节点位置
 nodes = np.random.rand(num_nodes, 2) * area_size
@@ -70,17 +87,17 @@ def get_brightness(color):
 
 plt.figure(figsize=(8, 8))
 
+# 创建一个字典来存储每个节点的TTL
+ttl_dict = {node: TTL for node in G.nodes()}
+
 # 连接节点并绘制
 for (i, j) in G.edges():
-    if times[i] < times[j]:  # 只有 times 值小的节点向 times 值大的节点传送信息
+    if times[i] < times[j]:  # 只有 times 值小的节点向 times 值大的节点传送信息且TTL未超限
         line_points = np.linspace(nodes[i], nodes[j], int(distances[i, j] / interval))
         for k in range(len(line_points) - 1):
             t = times[i] + (k / num_points)
             color = plt.cm.jet(1 - t)  # 使用1-t以便从红色到蓝色渐变
             plt.plot(line_points[k:k+2, 0], line_points[k:k+2, 1], color=color, marker='o', markersize=pointsize_path, linestyle='-', linewidth=linewidth_path)
-
-        # 在边的中点标注 (i, j)
-        mid_point = (nodes[i] + nodes[j]) / 2
 
 # 加粗绘制最短路径到目的节点
 for i in range(len(shortest_path_to_destination) - 1):
@@ -98,7 +115,7 @@ for i in range(num_nodes):
     brightness = get_brightness(color)
     edge_color = 'black' if brightness > 0.5 else 'white'
     nx.draw_networkx_nodes(G, pos, nodelist=[i], node_color=[color], node_size=30, edgecolors=edge_color, linewidths=0.8, node_shape='o')
-    plt.text(nodes[i, 0], nodes[i, 1], f'{times[i]:.2f}', fontsize=12, ha='right', va='bottom')
+    # plt.text(nodes[i, 0], nodes[i, 1], f'{times[i]:.2f}', fontsize=12, ha='right', va='bottom')
 
 # 绘制源节点和目的节点
 plt.scatter(nodes[source_node, 0], nodes[source_node, 1], c='palegreen', s=200, edgecolors='black', label='Source Node', marker='^', zorder=5)
