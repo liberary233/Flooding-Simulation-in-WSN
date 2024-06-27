@@ -32,14 +32,14 @@ while destination_node == source_node:
 # 计算节点之间的距离
 distances = np.linalg.norm(nodes[:, np.newaxis, :] - nodes[np.newaxis, :, :], axis=-1)
 
-# 创建图
-G = nx.Graph()
+# 创建有向图
+G = nx.DiGraph()
 for i in range(num_nodes):
     G.add_node(i, pos=(nodes[i, 0], nodes[i, 1]))
 
 for i in range(num_nodes):
-    for j in range(i + 1, num_nodes):
-        if distances[i, j] <= radius:
+    for j in range(num_nodes):
+        if i != j and distances[i, j] <= radius:
             G.add_edge(i, j, weight=distances[i, j])  # 使用距离作为权重
 
 # 使用Dijkstra算法计算从源节点到所有其他节点的最短路径
@@ -72,11 +72,15 @@ plt.figure(figsize=(8, 8))
 
 # 连接节点并绘制
 for (i, j) in G.edges():
-    line_points = np.linspace(nodes[i], nodes[j], int(distances[i, j] / interval))
-    for k in range(len(line_points) - 1):
-        t = times[i] + (k / num_points)
-        color = plt.cm.jet(1 - t)  # 使用1-t以便从红色到蓝色渐变
-        plt.plot(line_points[k:k+2, 0], line_points[k:k+2, 1], color=color, marker='o', markersize=pointsize_path, linestyle='-', linewidth=linewidth_path)
+    if times[i] < times[j]:  # 只有 times 值小的节点向 times 值大的节点传送信息
+        line_points = np.linspace(nodes[i], nodes[j], int(distances[i, j] / interval))
+        for k in range(len(line_points) - 1):
+            t = times[i] + (k / num_points)
+            color = plt.cm.jet(1 - t)  # 使用1-t以便从红色到蓝色渐变
+            plt.plot(line_points[k:k+2, 0], line_points[k:k+2, 1], color=color, marker='o', markersize=pointsize_path, linestyle='-', linewidth=linewidth_path)
+
+        # 在边的中点标注 (i, j)
+        mid_point = (nodes[i] + nodes[j]) / 2
 
 # 加粗绘制最短路径到目的节点
 for i in range(len(shortest_path_to_destination) - 1):
@@ -94,8 +98,7 @@ for i in range(num_nodes):
     brightness = get_brightness(color)
     edge_color = 'black' if brightness > 0.5 else 'white'
     nx.draw_networkx_nodes(G, pos, nodelist=[i], node_color=[color], node_size=30, edgecolors=edge_color, linewidths=0.8, node_shape='o')
-
-nx.draw_networkx_edges(G, pos, alpha=0.3)
+    plt.text(nodes[i, 0], nodes[i, 1], f'{times[i]:.2f}', fontsize=12, ha='right', va='bottom')
 
 # 绘制源节点和目的节点
 plt.scatter(nodes[source_node, 0], nodes[source_node, 1], c='palegreen', s=200, edgecolors='black', label='Source Node', marker='^', zorder=5)
@@ -111,7 +114,7 @@ destination_hops = len(shortest_path_to_destination) - 1
 all_nodes_time = lengths[max_distance_node]
 all_nodes_hops = len(shortest_path_to_furthest) - 1
 
-print(f'目的节点接收到数据的时间: {destination_time}')
-print(f'目的节点接收到数据的跳数: {destination_hops}')
-print(f'所有节点均收到数据的时间: {all_nodes_time}')
-print(f'所有节点均收到数据的跳数: {all_nodes_hops}')
+print(f'目的节点接收到数据的最短时间: {destination_time}')
+print(f'目的节点接收到数据的最小跳数: {destination_hops}')
+print(f'所有节点均收到数据的最短时间: {all_nodes_time}')
+print(f'所有节点均收到数据的最小跳数: {all_nodes_hops}')
