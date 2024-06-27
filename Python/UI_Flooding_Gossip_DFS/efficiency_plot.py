@@ -40,36 +40,56 @@ def collect_data(nodes, source_node, destination_node):
     data['gossip']['redundant_transmissions'].append(gossip_results['redundant_transmissions'])
 
 def plot_efficiency_comparison(nodes):
-    source_node = random.randint(0, len(nodes) - 1)
-    destination_node = random.randint(0, len(nodes) - 1)
-    while destination_node == source_node:
+    for _ in range(10):
+        source_node = random.randint(0, len(nodes) - 1)
         destination_node = random.randint(0, len(nodes) - 1)
+        while destination_node == source_node:
+            destination_node = random.randint(0, len(nodes) - 1)
 
-    # 收集数据
-    collect_data(nodes, source_node, destination_node)
+        # 收集数据
+        collect_data(nodes, source_node, destination_node)
+
+    x_axis = list(range(1, 11))
 
     # 绘制对比图
     fig, axs = plt.subplots(3, 2, figsize=(15, 15))
-    
+
     # 数据传输到目的节点的最短时间
-    axs[0, 0].boxplot([data['flooding']['destination_time'], data['gossip']['destination_time']], labels=['Flooding', 'Gossip'])
+    axs[0, 0].plot(x_axis, data['flooding']['destination_time'], 'r-', label='Flooding')
+    axs[0, 0].plot(x_axis, data['gossip']['destination_time'], 'b-', label='Gossip')
     axs[0, 0].set_title('Time to Destination Node')
-    
+    axs[0, 0].legend()
+
     # 数据传输到目的节点的最短跳数
-    axs[0, 1].boxplot([data['flooding']['destination_hops'], data['gossip']['destination_hops']], labels=['Flooding', 'Gossip'])
+    axs[0, 1].plot(x_axis, data['flooding']['destination_hops'], 'r-', label='Flooding')
+    axs[0, 1].plot(x_axis, data['gossip']['destination_hops'], 'b-', label='Gossip')
     axs[0, 1].set_title('Hops to Destination Node')
-    
+    axs[0, 1].legend()
+
     # 数据传输到全图的最短时间
-    axs[1, 0].boxplot([data['flooding']['all_time'], data['gossip']['all_time']], labels=['Flooding', 'Gossip'])
+    axs[1, 0].plot(x_axis, data['flooding']['all_time'], 'r-', label='Flooding')
+    axs[1, 0].plot(x_axis, data['gossip']['all_time'], 'b-', label='Gossip')
     axs[1, 0].set_title('Time to All Nodes')
-    
+    axs[1, 0].legend()
+
     # 数据传输到全图的最短跳数
-    axs[1, 1].boxplot([data['flooding']['all_hops'], data['gossip']['all_hops']], labels=['Flooding', 'Gossip'])
+    axs[1, 1].plot(x_axis, data['flooding']['all_hops'], 'r-', label='Flooding')
+    axs[1, 1].plot(x_axis, data['gossip']['all_hops'], 'b-', label='Gossip')
     axs[1, 1].set_title('Hops to All Nodes')
-    
+    axs[1, 1].legend()
+
     # 冗余传输数量
-    axs[2, 0].boxplot([data['flooding']['redundant_transmissions'], data['gossip']['redundant_transmissions']], labels=['Flooding', 'Gossip'])
+    axs[2, 0].plot(x_axis, data['flooding']['redundant_transmissions'], 'r-', label='Flooding')
+    axs[2, 0].plot(x_axis, data['gossip']['redundant_transmissions'], 'b-', label='Gossip')
     axs[2, 0].set_title('Redundant Transmissions')
-    
+    axs[2, 0].legend()
+
+    # Gossip平均时间图
+    gossip_avg_time = np.mean([t for t in data['gossip']['destination_time'] if t != float('inf')])
+    axs[2, 1].plot(x_axis, data['gossip']['destination_time'], 'b-', label='Gossip')
+    axs[2, 1].axhline(y=gossip_avg_time, color='r', linestyle='--', label='Average Time')
+    axs[2, 1].set_title('Gossip: Time to Destination Node with Average')
+    axs[2, 1].legend()
+
     plt.tight_layout()
     return fig

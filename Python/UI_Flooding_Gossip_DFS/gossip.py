@@ -39,16 +39,20 @@ def plot_gossip(nodes, source_node, destination_node):
     shortest_path_to_furthest = paths[max_distance_node] if max_distance_node in paths else None
 
     # 计算从源节点到最远节点的最短路径长度
-    longest_path_length = lengths[max_distance_node] if max_distance_node in lengths else None
+    longest_path_length = lengths[max_distance_node] if max_distance_node in lengths else float('inf')
+
+    # 检查 longest_path_length 是否为零
+    if longest_path_length == 0:
+      longest_path_length = float('inf')
 
     # 绘制节点
     pos = nx.get_node_attributes(G, 'pos')
 
-    # 计算每个节点的时刻
-    times = {node: lengths[node] / longest_path_length for node in G.nodes()} if longest_path_length else {}
+    # 计算每个节点的时刻，处理为无穷大的情况
+    times = {node: lengths.get(node, float('inf')) / longest_path_length for node in G.nodes()}
 
     # 计算路径上的点数量
-    num_points = longest_path_length / interval if longest_path_length else None
+    num_points = longest_path_length / interval if longest_path_length != float('inf') else float('inf')
 
     # 定义一个函数来计算颜色亮度
     def get_brightness(color):
@@ -101,35 +105,24 @@ def plot_gossip(nodes, source_node, destination_node):
     ax.legend()
     ax.set_title('Data Transmission Simulation (Gossip)')
 
-    # 输出结果
-    if destination_node in paths:
-        destination_time = lengths[destination_node]
-        destination_hops = len(shortest_path_to_destination) - 1
-        all_nodes_time = lengths[max_distance_node]
-        all_nodes_hops = len(shortest_path_to_furthest) - 1
-
-        print(f'目的节点接收到数据的最短时间: {destination_time}')
-        print(f'目的节点接收到数据的最小跳数: {destination_hops}')
-
-
-        # 检查是否能全图广播
-        can_broadcast = all(ttl_dict[node] > 0 for node in G.nodes())
-
-        if not can_broadcast:
-            print("不能全图广播")
-        else:
-            print(f'所有节点均收到数据的最短时间: {all_nodes_time}')
-            print(f'所有节点均收到数据的最小跳数: {all_nodes_hops}')
-
-    # 返回数据字典
+    # 输出结果 并返回数据字典
     gossip_data = {}
     if destination_node in paths:
         destination_time = lengths[destination_node]
         destination_hops = len(shortest_path_to_destination) - 1
         all_nodes_time = lengths[max_distance_node]
         all_nodes_hops = len(shortest_path_to_furthest) - 1
+        
+        print(f'目的节点接收到数据的最短时间: {destination_time}')
+        print(f'目的节点接收到数据的最小跳数: {destination_hops}')
 
-        can_broadcast = all(ttl_dict[node] > 0 for node in G.nodes())
+        can_broadcast = all(ttl_dict.get(node, 0) > 0 for node in G.nodes())
+
+        if not can_broadcast:
+            print("不能全图广播")
+        else:
+            print(f'所有节点均收到数据的最短时间: {all_nodes_time}')
+            print(f'所有节点均收到数据的最小跳数: {all_nodes_hops}')
 
         gossip_data = {
             'destination_time': destination_time,
