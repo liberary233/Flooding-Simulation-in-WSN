@@ -101,7 +101,7 @@ def plot_gossip(nodes, source_node, destination_node):
     ax.legend()
     ax.set_title('Data Transmission Simulation (Gossip)')
 
-         # 输出结果
+    # 输出结果
     if destination_node in paths:
         destination_time = lengths[destination_node]
         destination_hops = len(shortest_path_to_destination) - 1
@@ -121,4 +121,30 @@ def plot_gossip(nodes, source_node, destination_node):
             print(f'所有节点均收到数据的最短时间: {all_nodes_time}')
             print(f'所有节点均收到数据的最小跳数: {all_nodes_hops}')
 
-    return fig
+    # 返回数据字典
+    gossip_data = {}
+    if destination_node in paths:
+        destination_time = lengths[destination_node]
+        destination_hops = len(shortest_path_to_destination) - 1
+        all_nodes_time = lengths[max_distance_node]
+        all_nodes_hops = len(shortest_path_to_furthest) - 1
+
+        can_broadcast = all(ttl_dict[node] > 0 for node in G.nodes())
+
+        gossip_data = {
+            'destination_time': destination_time,
+            'destination_hops': destination_hops,
+            'all_time': all_nodes_time if can_broadcast else float('inf'),
+            'all_hops': all_nodes_hops if can_broadcast else float('inf'),
+            'redundant_transmissions': len(G.edges)
+        }
+    else:
+        gossip_data = {
+            'destination_time': float('inf'),
+            'destination_hops': float('inf'),
+            'all_time': float('inf'),
+            'all_hops': float('inf'),
+            'redundant_transmissions': len(G.edges)
+        }
+
+    return fig, gossip_data

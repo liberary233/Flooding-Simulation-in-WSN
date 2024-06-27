@@ -4,7 +4,7 @@ from node_generator import generate_nodes, load_nodes
 from flooding import plot_flooding
 from gossip import plot_gossip
 from dfs import plot_dfs
-from efficiency_plot import plot_efficiency_comparison
+from efficiency_plot import plot_efficiency_comparison, collect_data
 from plot_nodes import plot_nodes
 
 # 用于存储加载的节点图及其源节点和目的节点
@@ -26,13 +26,13 @@ def display_plot(fig):
 def show_flooding_simulation():
     if nodes is None:
         load_and_display_nodes()
-    fig = plot_flooding(nodes, source_node, destination_node)
+    fig, _ = plot_flooding(nodes, source_node, destination_node)
     display_plot(fig)
 
 def show_gossip_simulation():
     if nodes is None:
         load_and_display_nodes()
-    fig = plot_gossip(nodes, source_node, destination_node)
+    fig, _ = plot_gossip(nodes, source_node, destination_node)
     display_plot(fig)
 
 def show_dfs_simulation():

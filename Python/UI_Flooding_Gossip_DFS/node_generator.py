@@ -1,6 +1,9 @@
 import numpy as np
+from config import config
 
-def generate_nodes(num_nodes=10, area_size=10):
+def generate_nodes():
+    num_nodes=config['num_nodes']
+    area_size=config['area_size']
     nodes = np.random.rand(num_nodes, 2) * area_size
     source_node = np.random.randint(0, num_nodes)
     destination_node = np.random.randint(0, num_nodes)

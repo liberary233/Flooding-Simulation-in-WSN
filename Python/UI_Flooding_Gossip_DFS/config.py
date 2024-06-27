@@ -1,5 +1,8 @@
 # config.py
 config = {
+    'num_nodes': 18, 
+    'area_size': 10,
+
     'radius': 4,
     'interval': 0.05,
     'pointsize_path': 0.5,

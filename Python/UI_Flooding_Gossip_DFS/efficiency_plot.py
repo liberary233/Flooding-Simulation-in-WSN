@@ -1,35 +1,75 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import networkx as nx
+import random
+from flooding import plot_flooding
+from gossip import plot_gossip
+
+# 初始化数据结构
+data = {
+    'flooding': {
+        'destination_time': [],
+        'destination_hops': [],
+        'all_time': [],
+        'all_hops': [],
+        'redundant_transmissions': []
+    },
+    'gossip': {
+        'destination_time': [],
+        'destination_hops': [],
+        'all_time': [],
+        'all_hops': [],
+        'redundant_transmissions': []
+    }
+}
+
+def collect_data(nodes, source_node, destination_node):
+    # Flooding数据收集
+    _, flooding_results = plot_flooding(nodes, source_node, destination_node)
+    data['flooding']['destination_time'].append(flooding_results['destination_time'])
+    data['flooding']['destination_hops'].append(flooding_results['destination_hops'])
+    data['flooding']['all_time'].append(flooding_results['all_time'])
+    data['flooding']['all_hops'].append(flooding_results['all_hops'])
+    data['flooding']['redundant_transmissions'].append(flooding_results['redundant_transmissions'])
+
+    # Gossip数据收集
+    _, gossip_results = plot_gossip(nodes, source_node, destination_node)
+    data['gossip']['destination_time'].append(gossip_results['destination_time'])
+    data['gossip']['destination_hops'].append(gossip_results['destination_hops'])
+    data['gossip']['all_time'].append(gossip_results['all_time'])
+    data['gossip']['all_hops'].append(gossip_results['all_hops'])
+    data['gossip']['redundant_transmissions'].append(gossip_results['redundant_transmissions'])
 
 def plot_efficiency_comparison(nodes):
-    num_nodes = nodes.shape[0]
-    radius = 4
+    source_node = random.randint(0, len(nodes) - 1)
+    destination_node = random.randint(0, len(nodes) - 1)
+    while destination_node == source_node:
+        destination_node = random.randint(0, len(nodes) - 1)
 
-    distances = np.linalg.norm(nodes[:, np.newaxis, :] - nodes[np.newaxis, :, :], axis=-1)
-    G = nx.DiGraph()
-    for i in range(num_nodes):
-        G.add_node(i, pos=(nodes[i, 0], nodes[i, 1]))
-    for i in range(num_nodes):
-        for j in range(num_nodes):
-            if i != j and distances[i, j] <= radius:
-                G.add_edge(i, j, weight=distances[i, j])
+    # 收集数据
+    collect_data(nodes, source_node, destination_node)
 
-    lengths, paths = nx.single_source_dijkstra(G, 0)
+    # 绘制对比图
+    fig, axs = plt.subplots(3, 2, figsize=(15, 15))
     
-    fig, ax = plt.subplots()
-
-    nodes_list = list(range(num_nodes))
-    time_values = [lengths[node] for node in nodes_list]
-    hop_values = [len(paths[node]) - 1 for node in nodes_list]
-
-    ax.plot(nodes_list, time_values, marker='o', linestyle='-', color='b', label='Time')
-    ax.plot(nodes_list, hop_values, marker='x', linestyle='--', color='r', label='Hops')
-
-    ax.set_xlabel('Node Index')
-    ax.set_ylabel('Value')
-    ax.set_title('Path Efficiency Comparison')
-    ax.legend()
-    ax.grid(True)
+    # 数据传输到目的节点的最短时间
+    axs[0, 0].boxplot([data['flooding']['destination_time'], data['gossip']['destination_time']], labels=['Flooding', 'Gossip'])
+    axs[0, 0].set_title('Time to Destination Node')
     
+    # 数据传输到目的节点的最短跳数
+    axs[0, 1].boxplot([data['flooding']['destination_hops'], data['gossip']['destination_hops']], labels=['Flooding', 'Gossip'])
+    axs[0, 1].set_title('Hops to Destination Node')
+    
+    # 数据传输到全图的最短时间
+    axs[1, 0].boxplot([data['flooding']['all_time'], data['gossip']['all_time']], labels=['Flooding', 'Gossip'])
+    axs[1, 0].set_title('Time to All Nodes')
+    
+    # 数据传输到全图的最短跳数
+    axs[1, 1].boxplot([data['flooding']['all_hops'], data['gossip']['all_hops']], labels=['Flooding', 'Gossip'])
+    axs[1, 1].set_title('Hops to All Nodes')
+    
+    # 冗余传输数量
+    axs[2, 0].boxplot([data['flooding']['redundant_transmissions'], data['gossip']['redundant_transmissions']], labels=['Flooding', 'Gossip'])
+    axs[2, 0].set_title('Redundant Transmissions')
+    
+    plt.tight_layout()
     return fig
