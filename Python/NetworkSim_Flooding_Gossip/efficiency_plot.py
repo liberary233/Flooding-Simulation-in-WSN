@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import random
 from flooding import plot_flooding
 from gossip import plot_gossip
@@ -52,44 +53,46 @@ def plot_efficiency_comparison(nodes):
     x_axis = list(range(1, 11))
 
     # 绘制对比图
-    fig, axs = plt.subplots(3, 2, figsize=(15, 15))
+    fig, axs = plt.subplots(3, 2, figsize=(18, 15))  # 调整 figsize
 
     # 数据传输到目的节点的最短时间
-    axs[0, 0].plot(x_axis, data['flooding']['destination_time'], 'r-', label='Flooding')
-    axs[0, 0].plot(x_axis, data['gossip']['destination_time'], 'b-', label='Gossip')
+    axs[0, 0].plot(x_axis, data['flooding']['destination_time'], 'r-', label='Flooding', linewidth=1, marker='o')
+    axs[0, 0].plot(x_axis, data['gossip']['destination_time'], 'b-', label='Gossip', linewidth=1, marker='^')
     axs[0, 0].set_title('Time to Destination Node')
     axs[0, 0].legend()
 
     # 数据传输到目的节点的最短跳数
-    axs[0, 1].plot(x_axis, data['flooding']['destination_hops'], 'r-', label='Flooding')
-    axs[0, 1].plot(x_axis, data['gossip']['destination_hops'], 'b-', label='Gossip')
+    axs[0, 1].plot(x_axis, data['flooding']['destination_hops'], 'r-', label='Flooding', linewidth=1, marker='o')
+    axs[0, 1].plot(x_axis, data['gossip']['destination_hops'], 'b-', label='Gossip', linewidth=1, marker='^')
     axs[0, 1].set_title('Hops to Destination Node')
+    axs[0, 1].yaxis.set_major_locator(MaxNLocator(integer=True))
     axs[0, 1].legend()
 
     # 数据传输到全图的最短时间
-    axs[1, 0].plot(x_axis, data['flooding']['all_time'], 'r-', label='Flooding')
-    axs[1, 0].plot(x_axis, data['gossip']['all_time'], 'b-', label='Gossip')
+    axs[1, 0].plot(x_axis, data['flooding']['all_time'], 'r-', label='Flooding', linewidth=1, marker='o')
+    axs[1, 0].plot(x_axis, data['gossip']['all_time'], 'b-', label='Gossip', linewidth=1, marker='^')
     axs[1, 0].set_title('Time to All Nodes')
     axs[1, 0].legend()
 
     # 数据传输到全图的最短跳数
-    axs[1, 1].plot(x_axis, data['flooding']['all_hops'], 'r-', label='Flooding')
-    axs[1, 1].plot(x_axis, data['gossip']['all_hops'], 'b-', label='Gossip')
+    axs[1, 1].plot(x_axis, data['flooding']['all_hops'], 'r-', label='Flooding', linewidth=1, marker='o')
+    axs[1, 1].plot(x_axis, data['gossip']['all_hops'], 'b-', label='Gossip', linewidth=1, marker='^')
     axs[1, 1].set_title('Hops to All Nodes')
+    axs[1, 1].yaxis.set_major_locator(MaxNLocator(integer=True))
     axs[1, 1].legend()
 
     # 冗余传输数量
-    axs[2, 0].plot(x_axis, data['flooding']['redundant_transmissions'], 'r-', label='Flooding')
-    axs[2, 0].plot(x_axis, data['gossip']['redundant_transmissions'], 'b-', label='Gossip')
+    axs[2, 0].plot(x_axis, data['flooding']['redundant_transmissions'], 'r-', label='Flooding', linewidth=1, marker='o')
+    axs[2, 0].plot(x_axis, data['gossip']['redundant_transmissions'], 'b-', label='Gossip', linewidth=1, marker='^')
     axs[2, 0].set_title('Redundant Transmissions')
     axs[2, 0].legend()
 
     # Gossip平均时间图
     gossip_avg_time = np.mean([t for t in data['gossip']['destination_time'] if t != float('inf')])
-    axs[2, 1].plot(x_axis, data['gossip']['destination_time'], 'b-', label='Gossip')
+    axs[2, 1].plot(x_axis, data['gossip']['destination_time'], 'b-', label='Gossip', linewidth=1, marker='^')
     axs[2, 1].axhline(y=gossip_avg_time, color='r', linestyle='--', label='Average Time')
     axs[2, 1].set_title('Gossip: Time to Destination Node with Average')
     axs[2, 1].legend()
 
-    plt.tight_layout()
+    plt.tight_layout(pad=3.0)  # 调整 pad 值
     return fig
